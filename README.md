@@ -2,7 +2,7 @@
 
 By Balakumar Balasubramaniam, CS 498
 
-Click here to see the visualization. The martini glass structure is used here. 
+Click <a href="https://balaksuiuc.github.io/index.html#">here</a> to see the visualization. The martini glass structure is used here. 
 
 ### Message
 
