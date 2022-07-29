@@ -73,16 +73,16 @@ a.step-link:hover, a.active {
 }
 
 #step1-left-annotation {
-  left: 50px;
+  left: 250px;
   top: 20px;
-  width: 500px;
+  width: 600px;
   color: navy;
 }
  
 #step3-high-annotation {
-  left: 50px;
+  left: 250px;
   top: 20px;
-  width: 500px;
+  width: 600px;
 }
 
 #step1-right-annotation {

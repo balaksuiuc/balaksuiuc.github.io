@@ -8,10 +8,25 @@
   <link rel="stylesheet" href="css/reset.css">
   <link rel="stylesheet" href="css/stepper.css">
 
-  <script src="js/d3.v2.min.js"></script>
-  <script src="https://d3js.org/d3.v4.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="https://d3js.org/d3.v5.js"></script>
 
 </head>
+<style> /* set the CSS */
+
+  .line {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 2px;
+  }
+
+  .legend {
+    font-size: 16px;
+    font-weight: bold;
+    text-anchor: middle;
+}
+  
+  </style>
 <body>
   <div id="container">
     <h1>Historical Central Bank Rates</h1>
@@ -20,57 +35,40 @@
         The tabs allow the user to switch between global bank rates and developed/emerging market rate changes.</p>
     <div id="vis-nav">
       <a href="#" id="step1" class="step-link active">Global CB rate levels</a>
-      <a href="#" id="step2" class="step-link">Emerging markets</a>
-      <a href="#" id="step3" class="step-link">Developed markets</a>
+      <a href="#" id="step2" class="step-link">Developed markets</a>
+      <a href="#" id="step3" class="step-link">Emerging markets</a>
     </div>
     <div id="vis-container">
       <div id="annotation-steps">
         <div class="annotation-step" id="step1-annotation" style="display:block;">
           <div class="annotation" id="step1-left-annotation" >
-            <h4>Global central banks are very active</h4>
-            <p>...albeit on a  <strong>longer</strong> timescale than people perceive</p>
+            <h4>Global central banks are very active!!</h4>
+            <p>...albeit on a scale that is  <strong>much longer</strong> than people easily perceive</p>
           </div>
         </div>
         <div class="annotation-step" id="step2-annotation">
           <div class="annotation" id="step3-high-annotation" >
-             <h4>Developed markets are highly correlated to one another</h4>
-             <p>Most CBs follow the US central bank's lead...</p>
+             <h4>Developed markets are less volatile and highly correlated to one another</h4>
+             <p>Most CBs follow the US central bank's lead...but not always! <br><br> Click on next step.</p>
           </div>
         </div>
         <div class="annotation-step" id="step3-annotation">
           <div class="annotation" id="step3-high-annotation" >
-            <h4>Emerging markets lag developed markets</h4>
-            <p>Following visualization clearly shows...</p>
+            <h4>Emerging markets recovered much faster than DM</h4>
+            <p>After 2008, India and other markets raised their rates a lot faster than the Fed.</p>
           </div>
         </div>
       </div>
       <div id="vis-canvas"></div>
     </div>
   <script src="js/stepper.js"></script>
-
+  
   <script>
 
         // Set the dimensions of the canvas / graph
         var margin = {top: 50, right: 20, bottom: 30, left: 80},
             width = 980 - margin.left - margin.right,
             height = 700 - margin.top - margin.bottom;
-    
-        // Set the ranges
-        var x = d3.scale.linear()
-            .range([0, width]);
-        var y = d3.scale.linear()
-            .range([height, 0]);
-    
-        var color = d3.scale.category10();
-    
-        // Define the axes
-        var xAxis = d3.svg.axis()
-            .scale(x)
-            .orient("bottom");
-    
-        var yAxis = d3.svg.axis()
-            .scale(y)
-            .orient("left");
     
         // Add the svg canvas
         var svg = d3.select("#vis-canvas").append("svg")
@@ -79,91 +77,182 @@
           .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     
+        // Get data
+        var dataPath = "https://raw.githubusercontent.com/balaksuiuc/cs498_NarrativeViz/master/data/CB_data.dat";
+        // var parseTime = d3.timeParse("%m/%d/%Y");
+
+        // parse the date / time
+        // var parseTime = d3.timeParse("%d-%b-%y");
+        var parseTime = d3.timeParse("%Y-%m-%d");
+
+        // set the ranges
+        var x = d3.scaleTime().range([0, width]);
+        var y = d3.scaleLinear().range([height, 0]);
+
+        /* =============================== */
+
+        // define the 1 line
+        var valueline1 = d3.line()
+            .x(function(d) { return x(d.date); })
+            .y(function(d) { return y(d.US_Federal_Reserve_System); });
+
+        // define the 2 line
+        var valueline2 = d3.line()
+            .x(function(d) { return x(d.date); })
+            .y(function(d) { return y(d.European_Central_Bank); });
+            
+        // define the 3 line
+        var valueline3 = d3.line()
+            .x(function(d) { return x(d.date); })
+            .y(function(d) { return y(d.Bank_of_Japan); });
+            
+        // define the 4 line
+        var valueline4 = d3.line()
+            .x(function(d) { return x(d.date); })
+            .y(function(d) { return y(d.Bank_of_England); });
+
+        // define the 5 line
+        var valueline5 = d3.line()
+            .x(function(d) { return x(d.date); })
+            .y(function(d) { return y(d.Reserve_Bank_of_Australia); });
+
+        // define the 6 line
+        var valueline6 = d3.line()
+            .x(function(d) { return x(d.date); })
+            .y(function(d) { return y(d.Reserve_Bank_of_India); });
+
+        // define the 7 line
+        var valueline7 = d3.line()
+            .x(function(d) { return x(d.date); })
+            .y(function(d) { return y(d.Peoples_Bank_of_China); });
+            
+        // define the 8 line
+        var valueline8 = d3.line()
+            .x(function(d) { return x(d.date); })
+            .y(function(d) { return y(d.Central_Bank_of_Brazil); });
+
+        // define the 9 line
+        var valueline9 = d3.line()
+            .x(function(d) { return x(d.date); })
+            .y(function(d) { return y(d.Bank_of_Thailand); });
+
+        // define the 10 line
+        var valueline10 = d3.line()
+            .x(function(d) { return x(d.date); })
+            .y(function(d) { return y(d.Bank_Indonesia); });        
+
+        /* =============================== */
+
         // Get the data
-        d3.csv("data/CB_rates.dat", function(error, data) {
-          if (error) throw error;
-    
+        // d3.csv("https://raw.githubusercontent.com/balaksuiuc/cs498_NarrativeViz/master/data/data2.csv").then(function(data) {
+          d3.csv("https://raw.githubusercontent.com/balaksuiuc/cs498_NarrativeViz/master/data/CB_data.dat").then(function(data) {
+          // console.log(data.Reserve_Bank_of_India);
+          // format the data
           data.forEach(function(d) {
-            console.log(d)
+              d.date = parseTime(d.date);
           });
-    
-        // Scale the range of the data
-          x.domain(d3.extent(data, function(d) { return d.horse; })).nice();
-          y.domain(d3.extent(data, function(d) { return d.CO2; })).nice();
-    
-        // Add the X Axis
+
+          // Scale the range of the data
+          x.domain(d3.extent(data, function(d) { return d.date; }));
+          y.domain([0, d3.max(data, function(d) {
+            return 18; })]);
+
+          var plotcolors = ["#1f77b4","#ff7f0e","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf"];
+          var names = ["US Fed", "EU CB", "Japan", "England", "Aus", "India", "China", "Brazil", "Thailand", "Indonesia"];
+
+          var legendSpace = 30;
+
+          for (i=0;i <=9; i++){
+          svg.append("text")
+            .attr("y", 100+(legendSpace/2)+i*legendSpace)  // space legend
+            .attr("x", width - (margin.left/2))
+            .attr("class", "legend")    // style the legend
+            .style("fill", plotcolors[i])
+            .text(names[i]);
+          }
+
+
+          // Add the valueline path.
+          svg.append("path")
+              .data([data])
+              .attr("class", "line")
+              .style("stroke", plotcolors[0])
+              .attr("d", valueline1);
+
+          // Add the valueline2 path.
+          svg.append("path")
+              .data([data])
+              .attr("class", "line")
+              .style("stroke", plotcolors[1])
+              .attr("d", valueline2);
+
+          // Add the valueline3 path.
+          svg.append("path")
+              .data([data])
+              .attr("class", "line")
+              .style("stroke",  plotcolors[2])
+              .attr("d",valueline3);
+
+          // Add the valueline4 path.
+          svg.append("path")
+              .data([data])
+              .attr("class", "line")
+              .style("stroke",  plotcolors[3])
+              .attr("d",valueline4);
+
+          // Add the valueline3 path.
+          svg.append("path")
+              .data([data])
+              .attr("class", "line")
+              .style("stroke",  plotcolors[4])
+              .attr("d",valueline4);
+
+          // Add the valueline3 path.
+          svg.append("path")
+              .data([data])
+              .attr("class", "line")
+              .style("stroke",  plotcolors[5])
+              .attr("d",valueline5);              
+
+          // Add the valueline3 path.
+          svg.append("path")
+              .data([data])
+              .attr("class", "line")
+              .style("stroke",  plotcolors[6])
+              .attr("d",valueline6);
+
+          // Add the valueline3 path.
+          svg.append("path")
+              .data([data])
+              .attr("class", "line")
+              .style("stroke",  plotcolors[7])
+              .attr("d",valueline7);              
+
+          // Add the valueline3 path.
+          svg.append("path")
+              .data([data])
+              .attr("class", "line")
+              .style("stroke",  plotcolors[8])
+              .attr("d",valueline8);              
+
+          // Add the valueline3 path.
+          svg.append("path")
+              .data([data])
+              .attr("class", "line")
+              .style("stroke",  plotcolors[9])
+              .attr("d",valueline9);              
+
+          // Add the X Axis
           svg.append("g")
-              .attr("class", "x axis")
               .attr("transform", "translate(0," + height + ")")
-              .call(xAxis)
-            .append("text")
-              .attr("class", "label")
-              .attr("x", width)
-              .attr("y", -6)
-              .style("text-anchor", "end")
-              .text("Rated Horsepower (foot-pounds per second)");
-    
-        // Add the Y Axis
+              .call(d3.axisBottom(x));
+
+          // Add the Y Axis
           svg.append("g")
-              .attr("class", "y axis")
-              .call(yAxis)
-            .append("text")
-              .attr("class", "label")
-              .attr("transform", "rotate(-90)")
-              .attr("x", -200)
-              .attr("y", 6)
-              .attr("dy", ".71em")
-              .style("text-anchor", "end")
-              .text("CO2 Emissions (grams per mile)")
-    
-        // Add the Scatterplot
-          svg.selectAll(".dot")
-              .data(data)
-            .enter().append("circle")
-              .attr("class", "dot")
-              .attr("r", 3.5)
-              .attr("cx", function(d) { return x(d.horse); })
-              .attr("cy", function(d) { return y(d.CO2); })
-              .style("fill", function(d) { return color(d.type); })
-              .on("mouseover", function(d){
-                  d3.selectAll('.dot')
-                       .filter(function(dot){ 
-                        return (dot.type != d.type) 
-                       })
-                       .transition()
-                       .style("opacity", 0.01)
-              })
-                  .on("mouseout", function(d){
-                   d3.selectAll('.dot')
-                    .filter(function(dot){ 
-                     return (dot.type != d.type) 
-                    })
-                    .transition()
-                    .style("opacity", 1)
-              });
-    
-        // Add the Legend
-          var legend = svg.selectAll(".legend")
-              .data(color.domain())
-            .enter().append("g")
-              .attr("class", "legend")
-              .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
-    
-          legend.append("rect")
-              .attr("x", width - 18)
-              .attr("width", 18)
-              .attr("height", 18)
-              .style("fill", color);
-    
-          legend.append("text")
-              .attr("x", width - 24)
-              .attr("y", 9)
-              .attr("dy", ".35em")
-              .style("text-anchor", "end")
-              .text(function(d) { return d; });
-    
+              .call(d3.axisLeft(y));
+
         });
-    
-        </script>
-</div>
+
+  </script>
+  </div>
 </body>

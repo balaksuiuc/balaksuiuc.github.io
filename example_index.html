@@ -1,185 +1,153 @@
-<!doctype html>
-<head>
-  <meta charset="utf-8">
-  <title>Final Project for CS 498 - Data Visualization Course</title>
-  <meta name="author" content="Tyler Watkins">
-  <meta name="description" content="">
+<script>
+const timeConv = d3.timeParse("%d-%b-%Y");
+const dataset = d3.csv("data.csv");
+dataset.then(function(data) {
+    var slices = data.columns.slice(1).map(function(id) {
+        return {
+            id: id,
+            values: data.map(function(d){
+                return {
+                    date: timeConv(d.date),
+                    measurement: +d[id]
+                };
+            })
+        };
+    });
 
-  <link rel="stylesheet" href="css/reset.css">
-  <link rel="stylesheet" href="css/stepper.css">
+//----------------------------SCALES----------------------------//
+const xScale = d3.scaleTime().range([0,width]);
+const yScale = d3.scaleLinear().rangeRound([height, 0]);
+xScale.domain(d3.extent(data, function(d){
+    return timeConv(d.date)}));
+yScale.domain([(0), d3.max(slices, function(c) {
+    return d3.max(c.values, function(d) {
+        return d.measurement + 4; });
+        })
+    ]);
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+//-----------------------------AXES-----------------------------//
+const yaxis = d3.axisLeft()
+    .ticks((slices[0].values).length)
+    .scale(yScale);
 
-  <script src="js/stepper.js"></script>
-  <script src="//d3js.org/d3.v3.min.js"></script>
-</head>
-<body>
-  <div id="container">
-    <h1>CO2 Emissions vs Vehicle Horsepower. Should your next vehicle be less powerful?</h1>
-    <h2 class="subtitle">Visualization is based on data from the Environment Protection Agency of 4,411 vehicles manufactured in 2015.</h2>
-    <div id="vis-nav">
-      <a href="#" id="step1" class="step-link active">Global CB rate levels</a>
-      <a href="#" id="step2" class="step-link">Emerging markets</a>
-      <a href="#" id="step3" class="step-link">Developed markets</a>
-      <a href="https://github.com/tylerwatkins101/cs498-visualization-project/blob/master/README.md" target="_blank" class="desc-link">About the Visualization</a>
+const xaxis = d3.axisBottom()
+    .ticks(d3.timeDay.every(1))
+    .tickFormat(d3.timeFormat('%b %d'))
+    .scale(xScale);
 
-    </div>
-    <div id="vis-container">
-      <div id="annotation-steps">
-        <div class="annotation-step" id="step1-annotation" style="display:block;">
-          <div class="annotation" id="step1-high-annotation" >
-            <h4>As horsepower increases C02 emissions increase for all vehicle types.</h4>
-                		  
-          </div>
-         </div>
-        <div class="annotation-step" id="step2-annotation">
-          <div class="annotation" id="step2-high-annotation" >
-	    <h4>Mouseover the data to see the individual trends for Cars, Trucks or SUVs.</h4>
-				
-          </div>
-        </div>
-	<div class="annotation-step" id="step3-annotation">
-          <div class="annotation" id="step3-high-annotation" >
-	    <h4>No matter what type of vehicle you choose. Maybe your next purchase should be less powerful?</h4>
-		
-          </div>
-        </div>
-      </div>
-     <div id="vis-canvas"> 
-	     
-      <style>
+//----------------------------LINES-----------------------------//
+const line = d3.line()
+    .x(function(d) { return xScale(d.date); })
+    .y(function(d) { return yScale(d.measurement); }); 
 
-	.axis path,
-	.axis line {
-	  fill: none;
-	  stroke: #000;
-	  shape-rendering: crispEdges;
-	}
+let id = 0;
+const ids = function () {
+    return "line-"+id++;
+}  
+//-------------------------2. DRAWING---------------------------//
+//-----------------------------AXES-----------------------------//
+svg.append("g")
+    .attr("class", "axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xaxis);
 
-	.dot {
-	  stroke: #000;
-	}
+svg.append("g")
+    .attr("class", "axis")
+    .call(yaxis)
+    .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("dy", ".75em")
+    .attr("y", 6)
+    .style("text-anchor", "end")
+    .text("Frequency");
 
-	</style>
+//----------------------------LINES-----------------------------//
+const lines = svg.selectAll("lines")
+    .data(slices)
+    .enter()
+    .append("g");
 
-	<script>
+    lines.append("path")
+    .attr("class", ids)
+    .attr("d", function(d) { return line(d.values); });
 
-	// Set the dimensions of the canvas / graph
-	var margin = {top: 50, right: 20, bottom: 30, left: 80},
-	    width = 940 - margin.left - margin.right,
-	    height = 500 - margin.top - margin.bottom;
+    lines.append("text")
+    .attr("class","serie_label")
+    .datum(function(d) {
+        return {
+            id: d.id,
+            value: d.values[d.values.length - 1]}; })
+    .attr("transform", function(d) {
+            return "translate(" + (xScale(d.value.date) + 10)  
+            + "," + (yScale(d.value.measurement) + 5 ) + ")"; })
+    .attr("x", 5)
+    .text(function(d) { return ("Serie ") + d.id; });
 
-	// Set the ranges
-	var x = d3.scale.linear()
-	    .range([0, width]);
-	var y = d3.scale.linear()
-	    .range([height, 0]);
-
-	var color = d3.scale.category10();
-
-	// Define the axes
-	var xAxis = d3.svg.axis()
-	    .scale(x)
-	    .orient("bottom");
-
-	var yAxis = d3.svg.axis()
-	    .scale(y)
-	    .orient("left");
-
-	// Add the svg canvas
-	var svg = d3.select("#vis-canvas").append("svg")
-	    .attr("width", width + margin.left + margin.right)
-	    .attr("height", height + margin.top + margin.bottom)
-	  .append("g")
-	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-	// Get the data
-	d3.csv("https://raw.githubusercontent.com/tylerwatkins101/cs498-visualization-project/master/data/epa2015_final.csv", function(error, data) {
-	  if (error) throw error;
-
-	  data.forEach(function(d) {
-	    d.CO2 = +d.CO2;
-	    d.horse = +d.horse;
-	  });
-
-	// Scale the range of the data
-	  x.domain(d3.extent(data, function(d) { return d.horse; })).nice();
-	  y.domain(d3.extent(data, function(d) { return d.CO2; })).nice();
-
-	// Add the X Axis
-	  svg.append("g")
-	      .attr("class", "x axis")
-	      .attr("transform", "translate(0," + height + ")")
-	      .call(xAxis)
-	    .append("text")
-	      .attr("class", "label")
-	      .attr("x", width)
-	      .attr("y", -6)
-	      .style("text-anchor", "end")
-	      .text("Rated Horsepower (foot-pounds per second)");
-
-	// Add the Y Axis
-	  svg.append("g")
-	      .attr("class", "y axis")
-	      .call(yAxis)
-	    .append("text")
-	      .attr("class", "label")
-	      .attr("transform", "rotate(-90)")
-	      .attr("y", 6)
-	      .attr("dy", ".71em")
-	      .style("text-anchor", "end")
-	      .text("CO2 Emissions (grams per mile)")
-
-	// Add the Scatterplot
-	  svg.selectAll(".dot")
-	      .data(data)
-	    .enter().append("circle")
-	      .attr("class", "dot")
-	      .attr("r", 3.5)
-	      .attr("cx", function(d) { return x(d.horse); })
-	      .attr("cy", function(d) { return y(d.CO2); })
-	      .style("fill", function(d) { return color(d.type); })
-	      .on("mouseover", function(d){
-        	  d3.selectAll('.dot')
-            	   .filter(function(dot){ 
-                    return (dot.type != d.type) 
-                   })
-                   .transition()
-                   .style("opacity", 0.01)
-          })
-              .on("mouseout", function(d){
-               d3.selectAll('.dot')
-                .filter(function(dot){ 
-                 return (dot.type != d.type) 
-                })
-                .transition()
-                .style("opacity", 1)
-          });
-
-	// Add the Legend
-	  var legend = svg.selectAll(".legend")
-	      .data(color.domain())
-	    .enter().append("g")
-	      .attr("class", "legend")
-	      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
-
-	  legend.append("rect")
-	      .attr("x", width - 18)
-	      .attr("width", 18)
-	      .attr("height", 18)
-	      .style("fill", color);
-
-	  legend.append("text")
-	      .attr("x", width - 24)
-	      .attr("y", 9)
-	      .attr("dy", ".35em")
-	      .style("text-anchor", "end")
-	      .text(function(d) { return d; });
-
-	});
-
-	</script>
-     </div>
-    </div>
-  </div>
+});
+</script>
 </body>
+styles.css:
+
+/* AXES */
+/* ticks */
+.axis line{
+stroke: #706f6f;
+stroke-width: 0.5;
+shape-rendering: crispEdges;
+}
+
+/* axis contour */
+.axis path {
+stroke: #706f6f;
+stroke-width: 0.7;
+shape-rendering: crispEdges;
+}
+
+/* axis text */
+.axis text {
+fill: #2b2929;
+font-family: Georgia;
+font-size: 120%;
+}
+
+/* LINE CHART */
+path.line-0 {
+    fill: none;
+    stroke: #ed3700;
+}
+
+path.line-1 {
+    fill: none;
+    stroke: #2b2929;
+    stroke-dasharray: 2;
+}
+
+path.line-2 {
+    fill: none;
+    stroke: #9c9c9c;
+    stroke-dasharray: 6;
+}
+
+.serie_label {
+  fill: #2b2929;
+  font-family: Georgia;
+  font-size: 80%;
+}
+data.csv:
+
+date,A,B,C
+20-Jul-2019,10,20,16
+21-Jul-2019,11,22,18
+22-Jul-2019,13,19,21
+23-Jul-2019,11,17,22
+24-Jul-2019,15,16,20
+25-Jul-2019,16,19,18
+26-Jul-2019,19,21,18
+27-Jul-2019,22,25,15
+28-Jul-2019,18,24,12
+29-Jul-2019,14,20,16
+30-Jul-2019,14,18,18
+31-Jul-2019,16,18,21
+01-Aug-2019,15,20,22
+02-Aug-2019,14,21,19
+</script>
