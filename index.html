@@ -1,0 +1,169 @@
+<!doctype html>
+<head>
+  <meta charset="utf-8">
+  <title>Dynamic Annotations in a Visualization Stepper</title>
+  <meta name="author" content="Jim Vallandingham">
+  <meta name="description" content="">
+
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/stepper.css">
+
+  <script src="js/d3.v2.min.js"></script>
+  <script src="https://d3js.org/d3.v4.js"></script>
+
+</head>
+<body>
+  <div id="container">
+    <h1>Historical Central Bank Rates</h1>
+    <p> The following visualization shows central bank rate levels and level changes over history. <br><br>
+        
+        The tabs allow the user to switch between global bank rates and developed/emerging market rate changes.</p>
+    <div id="vis-nav">
+      <a href="#" id="step1" class="step-link active">Global CB rate levels</a>
+      <a href="#" id="step2" class="step-link">Emerging markets</a>
+      <a href="#" id="step3" class="step-link">Developed markets</a>
+    </div>
+    <div id="vis-container">
+      <div id="annotation-steps">
+        <div class="annotation-step" id="step1-annotation" style="display:block;">
+          <div class="annotation" id="step1-left-annotation" >
+            <h4>Global central banks are very active</h4>
+            <p>...albeit on a  <strong>longer</strong> timescale than people perceive</p>
+          </div>
+        </div>
+        <div class="annotation-step" id="step2-annotation">
+          <div class="annotation" id="step3-high-annotation" >
+             <h4>Developed markets are highly correlated to one another</h4>
+             <p>Most CBs follow the US central bank's lead...</p>
+          </div>
+        </div>
+        <div class="annotation-step" id="step3-annotation">
+          <div class="annotation" id="step3-high-annotation" >
+            <h4>Emerging markets lag developed markets</h4>
+            <p>Following visualization clearly shows...</p>
+          </div>
+        </div>
+      </div>
+      <div id="vis-canvas"></div>
+    </div>
+  <script src="js/stepper.js"></script>
+
+  <script>
+
+        // Set the dimensions of the canvas / graph
+        var margin = {top: 50, right: 20, bottom: 30, left: 80},
+            width = 980 - margin.left - margin.right,
+            height = 700 - margin.top - margin.bottom;
+    
+        // Set the ranges
+        var x = d3.scale.linear()
+            .range([0, width]);
+        var y = d3.scale.linear()
+            .range([height, 0]);
+    
+        var color = d3.scale.category10();
+    
+        // Define the axes
+        var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom");
+    
+        var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left");
+    
+        // Add the svg canvas
+        var svg = d3.select("#vis-canvas").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+          .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    
+        // Get the data
+        d3.csv("data/CB_rates.dat", function(error, data) {
+          if (error) throw error;
+    
+          data.forEach(function(d) {
+            console.log(d)
+          });
+    
+        // Scale the range of the data
+          x.domain(d3.extent(data, function(d) { return d.horse; })).nice();
+          y.domain(d3.extent(data, function(d) { return d.CO2; })).nice();
+    
+        // Add the X Axis
+          svg.append("g")
+              .attr("class", "x axis")
+              .attr("transform", "translate(0," + height + ")")
+              .call(xAxis)
+            .append("text")
+              .attr("class", "label")
+              .attr("x", width)
+              .attr("y", -6)
+              .style("text-anchor", "end")
+              .text("Rated Horsepower (foot-pounds per second)");
+    
+        // Add the Y Axis
+          svg.append("g")
+              .attr("class", "y axis")
+              .call(yAxis)
+            .append("text")
+              .attr("class", "label")
+              .attr("transform", "rotate(-90)")
+              .attr("x", -200)
+              .attr("y", 6)
+              .attr("dy", ".71em")
+              .style("text-anchor", "end")
+              .text("CO2 Emissions (grams per mile)")
+    
+        // Add the Scatterplot
+          svg.selectAll(".dot")
+              .data(data)
+            .enter().append("circle")
+              .attr("class", "dot")
+              .attr("r", 3.5)
+              .attr("cx", function(d) { return x(d.horse); })
+              .attr("cy", function(d) { return y(d.CO2); })
+              .style("fill", function(d) { return color(d.type); })
+              .on("mouseover", function(d){
+                  d3.selectAll('.dot')
+                       .filter(function(dot){ 
+                        return (dot.type != d.type) 
+                       })
+                       .transition()
+                       .style("opacity", 0.01)
+              })
+                  .on("mouseout", function(d){
+                   d3.selectAll('.dot')
+                    .filter(function(dot){ 
+                     return (dot.type != d.type) 
+                    })
+                    .transition()
+                    .style("opacity", 1)
+              });
+    
+        // Add the Legend
+          var legend = svg.selectAll(".legend")
+              .data(color.domain())
+            .enter().append("g")
+              .attr("class", "legend")
+              .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+    
+          legend.append("rect")
+              .attr("x", width - 18)
+              .attr("width", 18)
+              .attr("height", 18)
+              .style("fill", color);
+    
+          legend.append("text")
+              .attr("x", width - 24)
+              .attr("y", 9)
+              .attr("dy", ".35em")
+              .style("text-anchor", "end")
+              .text(function(d) { return d; });
+    
+        });
+    
+        </script>
+</div>
+</body>
